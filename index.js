@@ -85,13 +85,13 @@ function watermarkText(text, inputImage, outputImage) {
     context.drawImage(image, 0, 0, image.width, image.height);
 
     // Set watermark text properties
-    context.font = 'bold 40px Arial';
+    context.font = 'bold 35px Arial';
     context.fillStyle = 'rgba(255, 255, 255, 0.5)';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
 
     // Watermark text
-    context.fillText(text, canvas.width / 2, (canvas.height / 3));
+    context.fillText(text, (canvas.width / 2), (canvas.height / 3));
 
     // Save the resulting image
     const out = fs.createWriteStream(outputImage);
