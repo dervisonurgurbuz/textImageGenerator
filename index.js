@@ -15,14 +15,14 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // defaults to process.env["OPENAI_API_KEY"]
 });
 
-fs.readFile('./poem.txt', 'utf8', async (err, text) => {
+fs.readFile('./recepie.txt', 'utf8', async (err, text) => {
   if (err) {
     console.error(err);
     return;
   }
   console.log(text);
 
-
+  text = 'Can you generate a food image from this recipe: '+ text
   async function dalleGenerateImage(text) {
 
     const image = await openai.images.generate({ prompt: text });
@@ -69,6 +69,20 @@ fs.readFile('./poem.txt', 'utf8', async (err, text) => {
 
 
 });
+
+
+
+async function getGPTResponse(text) {
+  const completion = await openai.chat.completions.create({
+    messages: [{ role: "system", 
+    
+    content: text }],
+    model: "gpt-3.5-turbo",
+  });
+
+  console.log(completion.choices[0]);
+}
+
 
 
 //Watermarking Poem On Image
