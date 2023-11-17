@@ -17,104 +17,108 @@ const openai = new OpenAI({
 
 
 
-async function getGPRecepie(myCallback){
+async function getGPRecepie(myCallback) {
 
   fs.readFile('./ingredients.txt', 'utf8', async (err, text) => {
     if (err) {
       console.error(err);
       return;
-    }else{
+    } else {
       console.log(text);
-      text = 'Can you only give food options that can be prepared from these ingredients in one sentence like a story: ' + text; 
-      console.log(typeof(text))
+      text = 'Can you only give food options that can be prepared from these ingredients in one sentence like a story: ' + text;
+      console.log(typeof (text))
       data = await getGPTResponse(text)
-      fs.writeFile("./recepie.txt", data, (err) => { 
-        if (err) 
-          console.log(err); 
-        else { 
-          console.log(data+ 'has been written')
+      fs.writeFile("./recepie.txt", data, (err) => {
+        if (err)
+          console.log(err);
+        else {
+          console.log(data + 'has been written')
         }
       })
       myCallback(data)
     }
-    
-  
+
+
   })
 
 }
-  
 
 
 
 
 
-async function createFoodImage(text){
 
-      console.log("File written successfully\n"); 
-     
-        console.log(text);
-      
-        // text = 'Can you generate a food image from this recipe: '+ text
-        async function dalleGenerateImage(text) {
-      
-          const image = await openai.images.generate({ prompt: text });
-      
-          console.log(image.data[0].url);
-          return image.data[0].url
-      
-          
-      
-        }
-      
-      
-        // Function to download the image
-        async function downloadImage(outputPath, myCallback) {
-          try {
-            image_url = await myCallback(text)
-            const response = await axios.get(image_url, { responseType: 'stream' });
-            const writer = fs.createWriteStream(path.join(__dirname, outputPath));
-      
-            response.data.pipe(writer);
-      
-            return new Promise((resolve, reject) => {
-              writer.on('finish', resolve);
-              writer.on('error', reject);
-            });
-          } catch (error) {
-            console.error('Error downloading the image:', error);
-          }
-        }
-      
-        downloadImage('downloaded_image.png', dalleGenerateImage)
-          .then(() => {
-            console.log('Image downloaded successfully!');
-            watermarkText(text,'downloaded_image.png','output.png')
-          })
-          .catch((error) => {
-            console.error('Error:', error);
-          });
-          
-      
-      
-        // dalleGenerateImage(text);
-      
-      
-      
-      
-      // console.log("The written has the following contents:"); 
-      // console.log(fs.readFileSync("books.txt", "utf8")); 
-  
+async function createFoodImage(text) {
+
+  console.log("File written successfully\n");
+
+  console.log(text);
+
+  // text = 'Can you generate a food image from this recipe: '+ text
+  async function dalleGenerateImage(text) {
+
+    const image = await openai.images.generate({ prompt: text });
+
+    console.log(image.data[0].url);
+    return image.data[0].url
+
+
+
+  }
+
+
+  // Function to download the image
+  async function downloadImage(outputPath, myCallback) {
+    try {
+      image_url = await myCallback(text)
+      const response = await axios.get(image_url, { responseType: 'stream' });
+      const writer = fs.createWriteStream(path.join(__dirname, outputPath));
+
+      response.data.pipe(writer);
+
+      return new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+      });
+    } catch (error) {
+      console.error('Error downloading the image:', error);
+    }
+  }
+
+  downloadImage('downloaded_image.png', dalleGenerateImage)
+    .then(() => {
+      console.log('Image downloaded successfully!');
+      // watermarkText(text,'downloaded_image.png','watermarked_output.png')
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+
+
+
+  // dalleGenerateImage(text);
+
+
+
+
+  // console.log("The written has the following contents:"); 
+  // console.log(fs.readFileSync("books.txt", "utf8")); 
+
 }
 
+
+// Used Call Back Functions to wait chatGPT response generation from the ingradiances. Then image has been created accordingly.
 
 getGPRecepie(createFoodImage)
 
 
 async function getGPTResponse(text) {
   const completion = await openai.chat.completions.create({
-    messages: [{ role: "system", 
-    
-    content: text }],
+    messages: [{
+      role: "system",
+
+      content: text
+    }],
     model: "gpt-3.5-turbo",
   });
 
