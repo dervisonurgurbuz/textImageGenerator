@@ -1,8 +1,4 @@
 node_modules
 .env
 openai_test.js
-poem_1.txt
-poem_2.txt
-poem_3.txt
-poem_4.txt
-poem_5.txt
+*.png

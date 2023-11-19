@@ -12,30 +12,37 @@ require('dotenv').config();
 
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // defaults to process.env["OPENAI_API_KEY"]
+  apiKey: process.env.OPENAI_API_KEY, 
 });
 
 
 
-async function getGPRecepie(myCallback) {
-
+async function getGPTRecepie(myCallback) {
+  let data = ''
   fs.readFile('./ingredients.txt', 'utf8', async (err, text) => {
     if (err) {
       console.error(err);
       return;
     } else {
-      console.log(text);
-      text = 'Can you only give food options that can be prepared from these ingredients in one sentence like a story: ' + text;
-      console.log(typeof (text))
+      story = ''
+      // The max length of image generation API is 400 that is why the chatGPT response has to be less than 400
+      text = 'Can you make one paragraph maximum length 200 story from the food options that can be prepared from these ingredients: ' + text;
+      // console.log(typeof (text))
       data = await getGPTResponse(text)
+      console.log(data)
       fs.writeFile("./recepie.txt", data, (err) => {
         if (err)
           console.log(err);
         else {
-          console.log(data + 'has been written')
+          console.log(data.length + '  length story has been written in txt file')
+
+          myCallback(data)
+
         }
+
+
       })
-      myCallback(data)
+
     }
 
 
@@ -45,16 +52,14 @@ async function getGPRecepie(myCallback) {
 
 
 
-
-
-
 async function createFoodImage(text) {
 
-  console.log("File written successfully\n");
+  //  Prompt must be length 1000 or less while using DALL-E for image generation
+  if (text.length > 1000) {
+    text = text.substring(0, 1000)
 
-  console.log(text);
+  }
 
-  // text = 'Can you generate a food image from this recipe: '+ text
   async function dalleGenerateImage(text) {
 
     const image = await openai.images.generate({ prompt: text });
@@ -87,29 +92,18 @@ async function createFoodImage(text) {
 
   downloadImage('downloaded_image.png', dalleGenerateImage)
     .then(() => {
-      console.log('Image downloaded successfully!');
-      // watermarkText(text,'downloaded_image.png','watermarked_output.png')
+      console.log('Image downloaded successfully!'); 
     })
     .catch((error) => {
       console.error('Error:', error);
     });
-
-
-
-  // dalleGenerateImage(text);
-
-
-
-
-  // console.log("The written has the following contents:"); 
-  // console.log(fs.readFileSync("books.txt", "utf8")); 
 
 }
 
 
 // Used Call Back Functions to wait chatGPT response generation from the ingradiances. Then image has been created accordingly.
 
-getGPRecepie(createFoodImage)
+getGPTRecepie(createFoodImage)
 
 
 async function getGPTResponse(text) {
@@ -122,43 +116,8 @@ async function getGPTResponse(text) {
     model: "gpt-3.5-turbo",
   });
 
-  console.log(completion.choices[0]);
+  // console.log(completion.choices[0]);
   return completion.choices[0].message.content
 }
 
 
-
-//Watermarking Poem On Image
-function watermarkText(text, inputImage, outputImage) {
-
-  // Create a Canvas
-  const canvas = createCanvas(800, 600);
-  const context = canvas.getContext('2d');
-
-  // Load the image onto the canvas
-  loadImage(inputImage).then((image) => {
-    canvas.width = image.width;
-    canvas.height = image.height;
-    context.drawImage(image, 0, 0, image.width, image.height);
-
-    // Set watermark text properties
-    context.font = 'bold 35px Arial';
-    context.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-
-    // Watermark text
-    context.fillText(text, (canvas.width / 2), (canvas.height / 3));
-
-    // Save the resulting image
-    const out = fs.createWriteStream(outputImage);
-    const stream = canvas.createJPEGStream();
-    stream.pipe(out);
-    out.on('finish', () => console.log('Watermark added!'));
-  });
-
-
-
-
-
-}
